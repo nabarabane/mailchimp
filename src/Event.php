@@ -62,10 +62,13 @@ class Event
 
 		$list_id = $data['data']['list_id'];
 		$class = '\\MailChimp\\Events\\'.$c;
-		$request = new \MailChimp\Request('lists/webhooks', ['id' => $list_id]);
 
 		try {
-			$result = $request->request();
+			$result = (new \MailChimp\Handler())
+				->setMethod('lists/webhooks')
+				->setParams(['id' => $list_id])
+				->request()
+				->result;
 		} catch (Exception $e) {
 			return false;
 		}

@@ -2,19 +2,21 @@
 
 namespace MailChimp;
 
-class Request
+class Handler
 {
 	private $key;
 	private $dc;
 	private $method;
 	private $result;
-	private $opts;
+	private $params = [];
 
-	public function __construct($method = null, $opts = null)
+	public $result;
+
+	public function __construct()
 	{
 		$file = __DIR__.'/../mailchimp.key';
-		if (!@file_exists($file)) {
-			throw new Exception('Отсутсвует файл с ключом.');
+		if (!file_exists($file)) {
+			throw new Exception('Отсутсвует файл с ключом');
 		}
 
 		$this->key = trim(file_get_contents($file));
@@ -27,51 +29,36 @@ class Request
 		}
 
 		$this->dc = $dc;
-
-		if ($method !== null) {
-			$this->setMethod($method);
-		}
-
-		if ($opts !== null) {
-			$this->setOpts($opts);
-		}
+		$this->params['apikey'] = $this->key;
 	}
 
 	public function setMethod($method)
 	{
-		$this->method = (string)$method;
+		$this->method = $method;
+
+		return $this;
 	}
 
-	public function setOpts($opts)
+	public function setOpts($params)
 	{
-		$this->opts = $opts;
-		$this->opts['apikey'] = $this->key;
+		$this->params = array_merge($this->params, $params);
+
+		return $this;
 	}
 
 	public function request()
 	{
-		if (!$this->key) {
-			throw new Exception('Не задан API-ключ.');
-		}
-
 		if (!$this->method) {
-			throw new Exception('Вы должны указать метод.');
+			throw new Exception('Не указан метод запроса');
 		}
-
-		if (!$this->opts || !is_array($this->opts)) {
-			throw new Exception('Некорректные параметры запроса.');
-		}
-
-		$opts = json_encode($this->opts);
-		$url = 'https://'.$this->dc.'.api.mailchimp.com/2.0/'.$this->method.'.json';
 
 		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+		curl_setopt($ch, CURLOPT_URL, 'https://'.$this->dc.'.api.mailchimp.com/2.0/'.$this->method.'.json');
+		curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_POST, true);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $opts);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($this->params));
 
 		$result = curl_exec($ch);
 		$info = curl_getinfo($ch);
@@ -89,7 +76,7 @@ class Request
 			throw $this->catchError();
 		}
 
-		return $this->result;
+		return $this;
 	}
 
 	private function catchError()

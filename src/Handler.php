@@ -7,7 +7,6 @@ class Handler
 	private $key;
 	private $dc;
 	private $method;
-	private $result;
 	private $params = [];
 
 	public $result;
@@ -39,7 +38,7 @@ class Handler
 		return $this;
 	}
 
-	public function setOpts($params)
+	public function setParams($params)
 	{
 		$this->params = array_merge($this->params, $params);
 

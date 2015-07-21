@@ -15,7 +15,7 @@ class Handler
 	{
 		$file = __DIR__.'/../mailchimp.key';
 		if (!file_exists($file)) {
-			throw new Exception('Отсутсвует файл с ключом');
+			throw new \Exception('Отсутсвует файл с ключом');
 		}
 
 		$this->key = trim(file_get_contents($file));
@@ -48,7 +48,7 @@ class Handler
 	public function request()
 	{
 		if (!$this->method) {
-			throw new Exception('Не указан метод запроса');
+			throw new \Exception('Не указан метод запроса');
 		}
 
 		$ch = curl_init();
@@ -66,7 +66,7 @@ class Handler
 		curl_close($ch);
 
 		if ($error) {
-			throw new Exception($error);
+			throw new \Exception($error);
 		}
 
 		$this->result = json_decode($result);
@@ -81,9 +81,9 @@ class Handler
 	private function catchError()
 	{
 		if ($this->result->status !== 'error' || !$this->result->name) {
-			throw new Exception('We received an unexpected error: '.$this->result);
+			throw new \Exception('We received an unexpected error: '.$this->result);
 		}
 
-		return new Exception($this->result->error, $this->result->code);
+		return new \Exception($this->result->error, $this->result->code);
 	}
 }

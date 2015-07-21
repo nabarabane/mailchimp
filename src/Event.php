@@ -69,7 +69,7 @@ class Event
 				->setParams(['id' => $list_id])
 				->request()
 				->result;
-		} catch (Exception $e) {
+		} catch (\Exception $e) {
 			return false;
 		}
 

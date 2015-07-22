@@ -2,14 +2,11 @@
 	"name": "nabarabane/mailchimp",
 	"type": "library",
 	"description": "",
-	"keywords": [],
-	"homepage": "",
 	"license": "MIT",
 	"authors": [
 		{
 			"name": "Denis Gerasimov",
 			"email": "mailbox.gerasimov@gmail.com",
-			"homepage": "",
 			"role": "Developer"
 		}
 	],

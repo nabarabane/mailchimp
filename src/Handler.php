@@ -6,19 +6,23 @@ class Handler
 {
 	private $key;
 	private $dc;
-	private $method;
-	private $params = [];
 
 	public $result;
 
 	public function __construct()
 	{
 		$file = __DIR__.'/../mailchimp.key';
+
 		if (!file_exists($file)) {
 			throw new \Exception('Отсутсвует файл с ключом');
 		}
 
 		$this->key = trim(file_get_contents($file));
+
+		if (empty($this->key)) {
+			throw new \Exception('Файл с ключом пуст');
+		}
+
 		$dc = 'us1';
 		if (strstr($this->key, '-')) {
 			list($key, $dc) = explode('-', $this->key, 2);
@@ -28,36 +32,23 @@ class Handler
 		}
 
 		$this->dc = $dc;
-		$this->params['apikey'] = $this->key;
 	}
 
-	public function setMethod($method)
+	public function request($method = '', $params = [])
 	{
-		$this->method = $method;
-
-		return $this;
-	}
-
-	public function setParams($params)
-	{
-		$this->params = array_merge($this->params, $params);
-
-		return $this;
-	}
-
-	public function request()
-	{
-		if (!$this->method) {
+		if (!$method) {
 			throw new \Exception('Не указан метод запроса');
 		}
 
+		$params['apikey'] = $this->key;
+
 		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, 'https://'.$this->dc.'.api.mailchimp.com/2.0/'.$this->method.'.json');
+		curl_setopt($ch, CURLOPT_URL, 'https://'.$this->dc.'.api.mailchimp.com/2.0/'.$method.'.json');
 		curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_POST, true);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($this->params));
+		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
 
 		$result = curl_exec($ch);
 		$info = curl_getinfo($ch);
@@ -81,7 +72,7 @@ class Handler
 	private function catchError()
 	{
 		if ($this->result->status !== 'error' || !$this->result->name) {
-			throw new \Exception('We received an unexpected error: '.$this->result);
+			return new \Exception('We received an unexpected error: '.$this->result);
 		}
 
 		return new \Exception($this->result->error, $this->result->code);
